@@ -1,0 +1,3 @@
+alert_email = "you@example.com"
+my_ip_cidr  = "1.2.3.4/32"      # find yours at https://checkip.amazonaws.com
+admin_key   = "change-me-long-random-string"

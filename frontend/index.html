@@ -1,0 +1,37 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Student Result and Attendance Portal</title>
+<style>
+body{font-family:system-ui,sans-serif;max-width:720px;margin:2rem auto;padding:0 1rem;color:#14213a}
+section{border:1px solid #d9d3c3;border-radius:10px;padding:1rem;margin:1rem 0}
+input,select,button{padding:.45rem;margin:.2rem}
+button{background:#14213a;color:#fff;border:0;border-radius:6px;cursor:pointer}
+pre{background:#f4f1e8;padding:.7rem;overflow:auto}
+</style></head><body>
+<h1>Student Result and Attendance Portal</h1>
+<section><h2>Student lookup</h2>
+<input id="lroll" placeholder="Roll number"><button onclick="look()">View</button>
+<pre id="out"></pre>
+<input id="rsurl" value="http://localhost:8080" size="22"><button onclick="risk()">Check risk</button>
+<pre id="rout"></pre></section>
+<section><h2>Admin: attendance</h2>
+<input id="key" type="password" placeholder="Admin key">
+<input id="aroll" placeholder="Roll number"><input id="adate" type="date">
+<select id="astatus"><option>present</option><option>absent</option></select>
+<button onclick="att()">Save</button></section>
+<section><h2>Admin: marks</h2>
+<input id="rroll" placeholder="Roll number"><input id="rsub" placeholder="Subject">
+<input id="rmarks" type="number" min="0" max="100" placeholder="Marks"><button onclick="res()">Save</button>
+<pre id="aout"></pre></section>
+<script>
+const API="__API_URL__";let last=null;
+const show=(el,d)=>{el.textContent=JSON.stringify(d,null,2)};
+async function send(path,body){const r=await fetch(API+path,{method:"POST",headers:{"Content-Type":"application/json","x-admin-key":key.value},body:JSON.stringify(body)});show(aout,await r.json())}
+function att(){send("/attendance",{roll:aroll.value,date:adate.value,status:astatus.value})}
+function res(){send("/results",{roll:rroll.value,subject:rsub.value,marks:Number(rmarks.value)})}
+async function look(){const r=await fetch(API+"/students/"+encodeURIComponent(lroll.value));last=await r.json();show(out,last)}
+async function risk(){
+if(!last||last.attendance_pct==null||last.average_marks==null){rout.textContent="Look up a student with attendance and marks first.";return}
+const r=await fetch(rsurl.value+"/risk",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({attendance_pct:last.attendance_pct,average_marks:last.average_marks})});
+show(rout,await r.json())}
+</script></body></html>

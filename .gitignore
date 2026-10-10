@@ -1,0 +1,9 @@
+.terraform/
+*.tfstate
+terraform/portal.zip
+terraform.tfvars
+*.tfvars
+.joblib
+__pycache__/
+.pytest_cache/
+venv/
