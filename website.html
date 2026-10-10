@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Student Result and Attendance Portal</title>
+<style>
+:root{
+  --bg:#f4f7fa; --panel:#ffffff; --ink:#12263a; --muted:#52667a; --line:#d3dde7;
+  --brand:#0f5c6e; --brand-dark:#0a4452; --good:#17663a; --good-bg:#e3f4ea;
+  --warn:#8a4b05; --warn-bg:#fdf0d8; --bad:#a3231f; --bad-bg:#fbe4e2;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,"Segoe UI",Roboto,Arial,sans-serif;line-height:1.5}
+header{background:var(--brand);color:#fff;padding:2rem 1.25rem 1.75rem}
+header div,main{max-width:1020px;margin:0 auto}
+h1{font-family:Georgia,"Times New Roman",serif;font-size:clamp(1.6rem,4vw,2.3rem);margin:0 0 .35rem;font-weight:700}
+header p{margin:0;max-width:60ch;color:#d6eaef}
+main{padding:1.5rem 1.25rem 3rem;display:grid;grid-template-columns:3fr 2fr;gap:1.5rem;align-items:start}
+@media (max-width:820px){main{grid-template-columns:1fr}}
+section{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:1.25rem}
+h2{font-family:Georgia,"Times New Roman",serif;font-size:1.3rem;margin:0 0 .9rem}
+h3{font-size:1rem;margin:1.1rem 0 .5rem}
+label{display:block;font-size:.9rem;font-weight:600;margin:.6rem 0 .25rem}
+input{width:100%;padding:.55rem .65rem;border:1px solid #8ea0b2;border-radius:6px;font:inherit;background:#fff;color:var(--ink)}
+button{font:inherit;font-weight:600;padding:.55rem 1rem;border-radius:6px;border:1px solid var(--brand);background:var(--brand);color:#fff;cursor:pointer}
+button:hover{background:var(--brand-dark)}
+button.ghost{background:#fff;color:var(--brand)}
+button.ghost:hover{background:#e8f1f4}
+button.danger{background:#fff;color:var(--bad);border-color:var(--bad)}
+button.danger:hover{background:var(--bad-bg)}
+:focus-visible{outline:3px solid #f2a900;outline-offset:2px}
+.row{display:flex;gap:.6rem;flex-wrap:wrap;align-items:flex-end}
+.row>div{flex:1 1 140px}
+.actions{display:flex;gap:.6rem;flex-wrap:wrap;margin-top:.8rem}
+.msg{min-height:1.4rem;margin:.6rem 0 0;font-size:.92rem;font-weight:600}
+.msg.ok{color:var(--good)} .msg.err{color:var(--bad)}
+.hint{color:var(--muted);font-size:.9rem;margin:.25rem 0 0}
+.empty{color:var(--muted);margin:1rem 0 0}
+.name{font-family:Georgia,serif;font-size:1.5rem;margin:1rem 0 .1rem}
+.big{font-family:Georgia,serif;font-size:2.4rem;line-height:1;margin:.2rem 0}
+.track{position:relative;height:16px;background:#e5ecf2;border-radius:8px;margin:.6rem 0 .3rem}
+.fill{height:100%;border-radius:8px}
+.mark{position:absolute;top:-6px;bottom:-6px;width:3px;background:var(--ink)}
+.scale{position:relative;height:1.2rem;font-size:.8rem;color:var(--muted)}
+.scale span{position:absolute;transform:translateX(-50%);white-space:nowrap}
+.badge{display:inline-block;padding:.2rem .65rem;border-radius:999px;font-size:.88rem;font-weight:700}
+.badge.good{background:var(--good-bg);color:var(--good)}
+.badge.warn{background:var(--warn-bg);color:var(--warn)}
+.badge.bad{background:var(--bad-bg);color:var(--bad)}
+table{width:100%;border-collapse:collapse;margin-top:.3rem}
+th,td{text-align:left;padding:.45rem .5rem;border-bottom:1px solid var(--line)}
+td:last-child,th:last-child{text-align:right}
+.note{margin-top:1.1rem;padding:.7rem .85rem;border-left:4px solid var(--brand);background:#eef5f7;font-size:.9rem;color:var(--muted)}
+footer{max-width:1020px;margin:0 auto;padding:0 1.25rem 2rem;color:var(--muted);font-size:.85rem}
+</style>
+</head>
+<body>
+<header><div>
+  <h1>Student Result and Attendance Portal</h1>
+  <p>Look up a student's attendance, marks and exam eligibility. Teachers can add records below.</p>
+</div></header>
+
+<main>
+  <section aria-labelledby="h-student">
+    <h2 id="h-student">Student report</h2>
+    <form id="lookup">
+      <label for="lroll">Roll number</label>
+      <div class="row">
+        <div><input id="lroll" autocomplete="off" placeholder="For example ECE01" required></div>
+        <button type="submit">Show report</button>
+      </div>
+    </form>
+    <div id="out"><p class="empty">Enter a roll number to see the report. New here? Load the demo students on the right.</p></div>
+  </section>
+
+  <section aria-labelledby="h-teacher">
+    <h2 id="h-teacher">Teacher section</h2>
+
+    <form id="attForm">
+      <h3>Mark attendance</h3>
+      <label for="aroll">Roll number</label>
+      <input id="aroll" autocomplete="off" required>
+      <label for="adate">Date</label>
+      <input id="adate" type="date" required>
+      <div class="actions">
+        <button type="submit" value="present">Mark present</button>
+        <button type="submit" value="absent" class="ghost">Mark absent</button>
+      </div>
+      <p class="msg" id="amsg" role="status"></p>
+    </form>
+
+    <form id="markForm">
+      <h3>Add marks</h3>
+      <label for="mroll">Roll number</label>
+      <input id="mroll" autocomplete="off" required>
+      <label for="msub">Subject</label>
+      <input id="msub" maxlength="40" required>
+      <label for="mval">Marks (0 to 100)</label>
+      <input id="mval" type="number" min="0" max="100" step="any" required>
+      <div class="actions"><button type="submit">Save marks</button></div>
+      <p class="msg" id="mmsg" role="status"></p>
+    </form>
+
+    <h3>Demo data</h3>
+    <div class="actions">
+      <button type="button" id="demo" class="ghost">Load 3 demo students</button>
+      <button type="button" id="clear" class="danger">Clear all data</button>
+    </div>
+    <p class="hint">Demo roll numbers: ECE01, ECE02, ECE03.</p>
+    <p class="msg" id="dmsg" role="status"></p>
+  </section>
+</main>
+
+<footer>Records are saved in this browser only. The cloud version of this project (AWS Lambda, DynamoDB and a Kubernetes ML service) is in the project repository.</footer>
+
+<script>
+var KEY = "student-portal-data";
+var ROLL = /^[A-Za-z0-9_-]{1,20}$/;
+function $(id){ return document.getElementById(id); }
+function load(){ try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch(e){ return {}; } }
+var db = load();
+function save(){ try { localStorage.setItem(KEY, JSON.stringify(db)); } catch(e){} }
+function esc(s){ return String(s).replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
+function say(id, text, ok){ var el=$(id); el.textContent=text; el.className="msg "+(ok?"ok":"err"); }
+function rec(roll){ if(!db[roll]) db[roll]={att:{},marks:{}}; return db[roll]; }
+function grade(a){ return a>=90?"A+":a>=80?"A":a>=70?"B":a>=60?"C":a>=50?"D":"F"; }
+function today(){ var d=new Date(); d.setMinutes(d.getMinutes()-d.getTimezoneOffset()); return d.toISOString().slice(0,10); }
+$("adate").value = today();
+
+function normRoll(v){ v=v.trim().toUpperCase(); return ROLL.test(v) ? v : null; }
+
+$("attForm").addEventListener("submit", function(e){
+  e.preventDefault();
+  var roll = normRoll($("aroll").value);
+  if(!roll){ say("amsg","Roll number can use letters, numbers, - and _ (up to 20 characters).",false); return; }
+  var status = e.submitter ? e.submitter.value : "present";
+  rec(roll).att[$("adate").value] = status;
+  save();
+  say("amsg","Saved: "+roll+" was "+status+" on "+$("adate").value+".",true);
+});
+
+$("markForm").addEventListener("submit", function(e){
+  e.preventDefault();
+  var roll = normRoll($("mroll").value);
+  var sub = $("msub").value.trim();
+  var m = Number($("mval").value);
+  if(!roll){ say("mmsg","Roll number can use letters, numbers, - and _ (up to 20 characters).",false); return; }
+  if(!sub || sub.length>40){ say("mmsg","Enter a subject name of up to 40 characters.",false); return; }
+  if(!isFinite(m) || m<0 || m>100){ say("mmsg","Marks must be between 0 and 100.",false); return; }
+  rec(roll).marks[sub] = m;
+  save();
+  say("mmsg","Saved: "+roll+" scored "+m+" in "+sub+".",true);
+});
+
+$("demo").addEventListener("click", function(){
+  var absent = { ECE01:[4], ECE02:[2,7,11,16], ECE03:[0,2,4,6,8,10,12,14,16] };
+  var marks = { ECE01:[85,80,82,81], ECE02:[68,64,66,66], ECE03:[40,35,38,39] };
+  var subjects = ["Maths","Signals","Python","Electronics"];
+  Object.keys(absent).forEach(function(roll){
+    var r = rec(roll);
+    r.att = {}; r.marks = {};
+    for(var i=0;i<20;i++){
+      var d = new Date(Date.now()-i*864e5); d.setMinutes(d.getMinutes()-d.getTimezoneOffset());
+      r.att[d.toISOString().slice(0,10)] = absent[roll].indexOf(i)>=0 ? "absent" : "present";
+    }
+    subjects.forEach(function(s,k){ r.marks[s] = marks[roll][k]; });
+  });
+  save();
+  say("dmsg","Loaded ECE01, ECE02 and ECE03. Try them in the student report.",true);
+});
+
+$("clear").addEventListener("click", function(){
+  if(!confirm("Delete all saved records in this browser?")) return;
+  db = {}; save();
+  $("out").innerHTML = '<p class="empty">All records cleared.</p>';
+  say("dmsg","All records deleted.",true);
+});
+
+function report(roll){
+  var s = db[roll];
+  if(!s){
+    return '<p class="empty">No records for '+esc(roll)+' yet. Add attendance or marks in the teacher section, or load the demo students.</p>';
+  }
+  var dates = Object.keys(s.att), held = dates.length;
+  var present = dates.filter(function(d){ return s.att[d]==="present"; }).length;
+  var pct = held ? Math.round(1000*present/held)/10 : null;
+  var subs = Object.keys(s.marks);
+  var avg = subs.length ? Math.round(10*subs.reduce(function(a,k){ return a+s.marks[k]; },0)/subs.length)/10 : null;
+
+  var h = '<p class="name">'+esc(roll)+'</p>';
+
+  h += '<h3>Attendance</h3>';
+  if(pct===null){
+    h += '<p class="empty">No attendance recorded yet.</p>';
+  } else {
+    var ok = pct>=75;
+    var colour = ok ? "#17663a" : (pct>=65 ? "#b86e00" : "#a3231f");
+    h += '<p class="big">'+pct+'%</p>';
+    h += '<p class="hint">'+present+' of '+held+' classes attended</p>';
+    h += '<div class="track" role="img" aria-label="Attendance '+pct+' percent, minimum 75 percent">'
+       + '<div class="fill" style="width:'+pct+'%;background:'+colour+'"></div>'
+       + '<div class="mark" style="left:75%"></div></div>';
+    h += '<div class="scale"><span style="left:0;transform:none">0</span><span style="left:75%">75 needed</span><span style="left:100%;transform:translateX(-100%)">100</span></div>';
+    h += ok ? '<span class="badge good">Eligible for exams</span>' : '<span class="badge bad">Not eligible: below 75%</span>';
+  }
+
+  h += '<h3>Marks</h3>';
+  if(!subs.length){
+    h += '<p class="empty">No marks recorded yet.</p>';
+  } else {
+    h += '<table><thead><tr><th>Subject</th><th>Marks</th></tr></thead><tbody>';
+    subs.forEach(function(k){ h += '<tr><td>'+esc(k)+'</td><td>'+s.marks[k]+'</td></tr>'; });
+    h += '<tr><td><strong>Average</strong></td><td><strong>'+avg+' (grade '+grade(avg)+')</strong></td></tr></tbody></table>';
+  }
+
+  if(pct!==null && avg!==null){
+    var score = 0.5*(75-pct) + 0.5*(60-avg);
+    var p = 1/(1+Math.exp(-score/8));
+    var rp = Math.round(p*100);
+    var cls = p>=0.5 ? "bad" : (p>=0.25 ? "warn" : "good");
+    var label = p>=0.5 ? "Needs attention" : (p>=0.25 ? "Keep an eye on this" : "On track");
+    h += '<h3>Risk check</h3><p><span class="badge '+cls+'">'+label+'</span> Estimated risk: '+rp+'%</p>';
+    h += '<p class="note">This estimate uses a simple formula based on attendance and average marks. The full project runs a trained machine learning model for this in a Docker container on Kubernetes.</p>';
+  }
+  return h;
+}
+
+$("lookup").addEventListener("submit", function(e){
+  e.preventDefault();
+  var roll = normRoll($("lroll").value);
+  $("out").innerHTML = roll ? report(roll) : '<p class="empty">Roll number can use letters, numbers, - and _ (up to 20 characters).</p>';
+});
+</script>
+</body>
+</html>
